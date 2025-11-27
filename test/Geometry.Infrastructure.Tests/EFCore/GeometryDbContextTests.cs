@@ -194,4 +194,156 @@ public class GeometryDbContextTests
         var count = await context.Cubes.CountAsync();
         Assert.Equal(0, count);
     }
+    [Fact]
+public void Cylinders_ShouldBeInitialized()
+{
+    // Arrange
+    using var context = CreateContext();
+
+    // Assert
+    Assert.NotNull(context.Cylinders);
+}
+
+[Fact]
+public async Task Cylinders_ShouldAllowAddingEntities()
+{
+    // Arrange
+    using var context = CreateContext();
+    var cylinder = new CylinderDBO
+    {
+        Id = Guid.NewGuid(),
+        Radius = 3,
+        Height = 10
+    };
+
+    // Act
+    await context.Cylinders.AddAsync(cylinder);
+    await context.SaveChangesAsync();
+
+    // Assert
+    var count = await context.Cylinders.CountAsync();
+    Assert.Equal(1, count);
+}
+
+[Fact]
+public async Task Cylinders_ShouldAllowQueryingEntities()
+{
+    // Arrange
+    using var context = CreateContext();
+    var id = Guid.NewGuid();
+    var cylinder = new CylinderDBO
+    {
+        Id = id,
+        Radius = 5,
+        Height = 12
+    };
+
+    await context.Cylinders.AddAsync(cylinder);
+    await context.SaveChangesAsync();
+
+    // Act
+    var retrieved = await context.Cylinders.FirstOrDefaultAsync(c => c.Id == id);
+
+    // Assert
+    Assert.NotNull(retrieved);
+    Assert.Equal(5, retrieved.Radius);
+    Assert.Equal(12, retrieved.Height);
+}
+
+[Fact]
+public async Task ModelConfiguration_CylinderIdShouldBePrimaryKey()
+{
+    // Arrange
+    using var context = CreateContext();
+    var cylinder = new CylinderDBO
+    {
+        Id = Guid.NewGuid(),
+        Radius = 5,
+        Height = 12
+    };
+
+    await context.Cylinders.AddAsync(cylinder);
+    await context.SaveChangesAsync();
+
+    // Act
+    var retrieved = await context.Cylinders.FindAsync(cylinder.Id);
+
+    // Assert
+    Assert.NotNull(retrieved);
+    Assert.Equal(cylinder.Id, retrieved.Id);
+}
+
+[Fact]
+public async Task Database_ShouldSupportMultipleCylinderEntities()
+{
+    // Arrange
+    using var context = CreateContext();
+    var c1 = new CylinderDBO { Id = Guid.NewGuid(), Radius = 1, Height = 2 };
+    var c2 = new CylinderDBO { Id = Guid.NewGuid(), Radius = 2, Height = 4 };
+    var c3 = new CylinderDBO { Id = Guid.NewGuid(), Radius = 3, Height = 6 };
+
+    // Act
+    await context.Cylinders.AddRangeAsync(c1, c2, c3);
+    await context.SaveChangesAsync();
+
+    // Assert
+    var count = await context.Cylinders.CountAsync();
+    Assert.Equal(3, count);
+}
+
+[Fact]
+public async Task Database_ShouldSupportUpdatingCylinderEntities()
+{
+    // Arrange
+    using var context = CreateContext();
+    var id = Guid.NewGuid();
+    var cylinder = new CylinderDBO
+    {
+        Id = id,
+        Radius = 2,
+        Height = 8
+    };
+
+    await context.Cylinders.AddAsync(cylinder);
+    await context.SaveChangesAsync();
+
+    // Act
+    var retrieved = await context.Cylinders.FindAsync(id);
+    retrieved!.Radius = 10;
+    retrieved.Height = 20;
+    context.Cylinders.Update(retrieved);
+    await context.SaveChangesAsync();
+
+    // Assert
+    var updated = await context.Cylinders.FindAsync(id);
+    Assert.NotNull(updated);
+    Assert.Equal(10, updated.Radius);
+    Assert.Equal(20, updated.Height);
+}
+
+[Fact]
+public async Task Database_ShouldSupportDeletingCylinderEntities()
+{
+    // Arrange
+    using var context = CreateContext();
+    var id = Guid.NewGuid();
+    var cylinder = new CylinderDBO
+    {
+        Id = id,
+        Radius = 4,
+        Height = 10
+    };
+
+    await context.Cylinders.AddAsync(cylinder);
+    await context.SaveChangesAsync();
+
+    // Act
+    context.Cylinders.Remove(cylinder);
+    await context.SaveChangesAsync();
+
+    // Assert
+    var count = await context.Cylinders.CountAsync();
+    Assert.Equal(0, count);
+}
+
 }
